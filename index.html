@@ -3,57 +3,858 @@
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color-scheme:dark;background:#0b1220;color:#f1f5f9}*{box-sizing:border-box}body{margin:0;padding:16px;max-width:900px;margin-inline:auto}h1{margin:8px 0}h2{font-size:1.1rem}p,small{color:#bac7d9}.panel{background:#172337;border:1px solid #304159;border-radius:16px;padding:18px;margin:14px 0}input,textarea,select,button{font:inherit;border-radius:10px;padding:12px;border:1px solid #42546d;background:#0c1728;color:white}input,textarea,select{width:100%}textarea{min-height:190px;font-family:ui-monospace,monospace;font-size:13px}button{cursor:pointer;font-weight:700}button:disabled{opacity:.45;cursor:default}.primary{background:#2563eb}.good{background:#166534}.bad{background:#991b1b}.pass{background:#1d4ed8}.muted{background:#34445c}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.hide{display:none!important}.clock{font-size:clamp(2.7rem,12vw,5rem);font-weight:800;font-variant-numeric:tabular-nums;text-align:center;color:#86efac}.letter{font-size:2rem;text-align:center;font-weight:800}.question{text-align:center;font-size:1.35rem;line-height:1.45;margin:18px 0}.answer{text-align:center;background:#0d382e;color:#a7f3d0;border-radius:12px;padding:14px;font-weight:700}.team{padding:12px;border-radius:10px;background:#0d1729}.team.active{outline:2px solid #60a5fa}.small{font-size:.85rem}#status{color:#fbbf24;font-weight:600}details summary{cursor:pointer;font-weight:700}label{display:block;margin:10px 0 5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.actions button{flex:1}.note{font-size:.85rem}#editorRows{max-height:400px;overflow:auto}.qrow{border-bottom:1px solid #42546d;padding:12px 0}.qrow input{margin-top:5px} @media(max-width:540px){.grid{gap:6px}.grid button{padding:12px 4px;font-size:.85rem}.two{grid-template-columns:1fr}}
 </style></head><body>
 <h1>🎯 Pasapalabra</h1><p>Panel privado del moderador · funciona desde celular y computadora.</p>
-<section class="panel" id="setup"><h2>Configurar partida</h2><label>Equipos</label><select id="count"><option value="1">1 equipo</option><option value="2" selected>2 equipos</option><option value="3">3 equipos</option></select><div id="names"></div><label>Tiempo por equipo (minutos, admite 2.5)</label><input id="minutes" type="number" min="0.1" max="120" step="0.5" value="2.5"><p id="validation"></p><button class="primary" id="start">Preparar partida</button><p class="note">Cada equipo recibe una pregunta distinta por letra. Las preguntas utilizadas no se repiten en nuevas partidas hasta agotar las disponibles para esa letra. La W no participa.</p></section>
+<section class="panel" id="setup"><h2>Configurar partida</h2><label>Equipos</label><select id="count"><option value="1">1 equipo</option><option value="2" selected>2 equipos</option><option value="3">3 equipos</option></select><div id="names"></div><label>Tiempo por equipo (minutos, admite 2.5)</label><input id="minutes" type="number" min="0.1" max="120" step="0.5" value="2.5"><p id="validation"></p><button class="primary" id="start">Preparar partida</button><p class="note">Banco bíblico integrado: 156 preguntas, 6 por letra. Cada equipo recibe una pregunta distinta por letra. Las preguntas utilizadas no se repiten en nuevas partidas hasta agotar las disponibles para esa letra. La W no participa.</p></section>
 <section class="panel hide" id="game"><div id="scores"></div><h2 id="turn"></h2><div class="clock" id="clock">02:30</div><div class="letter" id="letter"></div><div id="clueType" style="text-align:center;color:#93c5fd;font-weight:800;margin-top:8px"></div><div class="question" id="question"></div><div class="answer" id="answer"></div><p id="status"></p><div class="grid"><button class="good" id="correct">C · Correcto</button><button class="bad" id="wrong">E · Error</button><button class="pass" id="skip">P · Pasapalabra</button></div><div class="actions"><button class="primary" id="toggle">Iniciar reloj</button><button class="muted" id="finish">Finalizar partida</button></div><p class="note">El reloj se pausa al cambiar de equipo. Presiona «Iniciar reloj» para continuar. Atajos: C, E, P y espacio (solo en computadora).</p></section>
 <section class="panel hide" id="results"><h2>Resultados</h2><div id="finalScores"></div><button id="again" class="primary">Nueva partida</button></section>
-<section class="panel"><details id="editorDetails"><summary>✏️ Administrar preguntas</summary><p>Las preguntas se guardan en este navegador. Usa exportar/importar para llevarlas a otro dispositivo. Selecciona «Empieza por» o «Contiene» para cada pregunta. Importar JSON reemplaza todo el banco.</p><label>Letra</label><select id="editLetter"></select><div id="editorRows"></div><div class="actions"><button id="addQuestion">+ Añadir pregunta</button><button class="primary" id="saveQuestions">Guardar cambios</button></div><h2>Copias de seguridad</h2><div class="actions"><button id="export">Exportar JSON</button><button id="resetHistory" class="muted">Reiniciar historial de preguntas</button><button id="importBtn">Importar JSON</button><input class="hide" type="file" id="importFile" accept="application/json,.json"></div><p class="note">La importación reemplaza el banco de preguntas actual y reinicia el historial de preguntas utilizadas. El historial se guarda en este navegador; en otro dispositivo empieza por separado.</p></details></section>
+<section class="panel"><details id="editorDetails"><summary>✏️ Administrar preguntas</summary><p>El juego incluye 156 preguntas bíblicas (6 por letra). Las modificaciones se guardan en este navegador. Usa exportar/importar para llevarlas a otro dispositivo. Selecciona «Empieza por» o «Contiene» para cada pregunta. Importar JSON reemplaza todo el banco.</p><label>Letra</label><select id="editLetter"></select><div id="editorRows"></div><div class="actions"><button id="addQuestion">+ Añadir pregunta</button><button class="primary" id="saveQuestions">Guardar cambios</button></div><h2>Copias de seguridad</h2><div class="actions"><button id="export">Exportar JSON</button><button id="resetHistory" class="muted">Reiniciar historial de preguntas</button><button id="importBtn">Importar JSON</button><input class="hide" type="file" id="importFile" accept="application/json,.json"></div><p class="note">La importación reemplaza el banco de preguntas actual y reinicia el historial de preguntas utilizadas. El historial se guarda en este navegador; en otro dispositivo empieza por separado.</p></details></section>
 <script>
 'use strict';
 const LETTERS='ABCDEFGHIJKLMNÑOPQRSTUVXYZ'.split(''); // 26 letras; W excluida
 const seed={
-A:[['¿Qué líquido tiene la fórmula H₂O?','Agua'],['¿Qué animal de ocho patas teje telarañas?','Araña'],['¿Qué vehículo con alas transporta pasajeros por el aire?','Avión']],
-B:[['¿Qué vehículo tiene dos ruedas y pedales?','Bicicleta'],['¿Qué mamífero marino es el animal más grande conocido?','Ballena azul'],['¿Qué instrumento de percusión se toca con baquetas y tiene membranas?','Batería']],
-C:[['¿Qué astro orbita la Tierra?','Luna'],['¿Qué objeto se usa para abrir una cerradura?','Llave'],['¿Qué animal doméstico suele maullar?','Gato']],
-D:[['¿Qué día sigue al sábado?','Domingo'],['¿Qué animal prehistórico es famoso por sus fósiles?','Dinosaurio'],['¿Qué pieza se lanza en juegos de mesa para obtener un número?','Dado']],
-E:[['¿Qué cuerpo celeste brilla con luz propia?','Estrella'],['¿Qué animal tiene una trompa larga?','Elefante'],['¿Cómo se llama la estación que sigue al verano?','Otoño']],
-F:[['¿Qué ciencia estudia la materia y la energía?','Física'],['¿Qué planta produce fresas?','Fresal'],['¿Qué objeto ilumina mediante una llama y una mecha?','Farol']],
-G:[['¿Qué animal doméstico maúlla?','Gato'],['¿Qué instrumento tiene seis cuerdas habitualmente?','Guitarra'],['¿Qué figura geométrica tiene todos sus puntos a igual distancia del centro?','Circunferencia']],
-H:[['¿Qué gas es el elemento más ligero?','Hidrógeno'],['¿Qué órgano bombea la sangre?','Corazón'],['¿Qué alimento producen las abejas?','Miel']],
-I:[['¿Qué país tiene por capital Roma?','Italia'],['¿Qué construcción de nieve sirve como refugio?','Iglú'],['¿Qué aparato usa lentes para ampliar imágenes de objetos muy pequeños?','Microscopio']],
-J:[['¿Qué planeta es el más grande del sistema solar?','Júpiter'],['¿Qué animal tiene cuello muy largo y manchas?','Jirafa'],['¿Qué mes viene después de mayo?','Junio']],
-K:[['¿Qué unidad equivale a mil gramos?','Kilogramo'],['¿Qué fruta verde tiene pulpa con pequeñas semillas negras?','Kiwi'],['¿Qué arte marcial japonés se practica con golpes y patadas?','Karate']],
-L:[['¿Qué satélite natural orbita la Tierra?','Luna'],['¿Qué animal es conocido como rey de la selva?','León'],['¿Qué objeto permite leer de noche sin iluminar toda una habitación?','Lámpara']],
-M:[['¿Qué planeta es conocido como el planeta rojo?','Marte'],['¿Qué instrumento mide la masa en una balanza?','Masa'],['¿Qué animal volador es un mamífero?','Murciélago']],
-N:[['¿Qué punto cardinal se opone al sur?','Norte'],['¿Qué fruta cítrica suele ser de color anaranjado?','Naranja'],['¿Qué capa blanca puede cubrir montañas durante el invierno?','Nieve']],
-O:[['¿Qué metal precioso tiene símbolo Au?','Oro'],['¿Qué órgano permite percibir sonidos?','Oído'],['¿Qué forma geométrica se parece a un círculo alargado?','Óvalo']],
-P:[['¿Qué astro es el centro del sistema solar?','Sol'],['¿Qué ave suele asociarse con la paz?','Paloma'],['¿Qué objeto se usa para escribir con tinta?','Pluma']],
-Q:[['¿Qué producto lácteo se elabora al coagular leche?','Queso'],['¿Qué disciplina estudia la composición de la materia?','Química'],['¿Qué planta andina se cultiva por sus semillas comestibles?','Quinua']],
-R:[['¿Qué color se obtiene al mezclar rojo y azul en pintura?','Morado'],['¿Qué animal pequeño tiene larga cola y es un roedor?','Ratón'],['¿Qué aparato recibe señales de emisoras de audio?','Radio']],
-S:[['¿Qué estrella ilumina la Tierra?','Sol'],['¿Qué animal es un reptil sin patas?','Serpiente'],['¿Qué astro natural de la Tierra refleja la luz solar?','Luna']],
-T:[['¿Qué animal tiene caparazón y puede vivir muchos años?','Tortuga'],['¿Qué aparato permite hablar a distancia?','Teléfono'],['¿Qué bebida se prepara con hojas de Camellia sinensis?','Té']],
-U:[['¿Qué fruta pequeña crece en racimos y se usa para hacer vino?','Uva'],['¿Qué palabra nombra al conjunto de todo el espacio y la materia?','Universo'],['¿Qué número representa una sola unidad?','Uno']],
-V:[['¿Qué estación del año sigue a la primavera?','Verano'],['¿Qué animal es una cría de vaca?','Ternero'],['¿Qué objeto se usa para transportar flores cortadas con agua?','Florero']],
-X:[['Contiene la X: ¿Qué instrumento musical tiene láminas de madera que se golpean con baquetas?','Xilófono'],['Contiene la X: ¿Qué palabra significa prueba o evaluación escolar?','Examen'],['Contiene la X: ¿Qué palabra designa la salida de un país para vivir en otro?','Éxodo']],
-Y:[['¿Qué alimento lácteo fermentado se come con cuchara?','Yogur'],['¿Qué embarcación de recreo puede tener velas o motor?','Yate'],['¿Qué planta comestible es también conocida como mandioca?','Yuca']],
-Z:[['¿Qué animal de rayas blancas y negras se parece al caballo?','Cebra'],['¿Qué prenda cubre el pie y parte de la pierna?','Zapato'],['¿Qué hortaliza naranja suele usarse en ensaladas?','Zanahoria']]
+  "A": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué esposa de Nabal llevó provisiones a David para evitar que se vengara de su familia?",
+      "respuesta": "Abigail"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué sacerdote, hermano de Moisés, hizo un becerro de oro mientras Moisés estaba en el monte?",
+      "respuesta": "Aarón"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de David encabezó una rebelión contra su padre y quedó atrapado en una encina?",
+      "respuesta": "Absalón"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué esposo de Priscila colaboró con ella para explicar con más precisión el camino de Dios a Apolos?",
+      "respuesta": "Aquila"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué predicador elocuente de Alejandría conocía inicialmente solo el bautismo de Juan?",
+      "respuesta": "Apolos"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué ciudad se llamó cristianos por primera vez a los discípulos?",
+      "respuesta": "Antioquía"
+    }
+  ],
+  "B": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué compañero de Pablo era conocido como hijo de consolación y lo acompañó en su primer viaje misionero?",
+      "respuesta": "Bernabé"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué ciego de Jericó llamó a Jesús «Hijo de David» y recuperó la vista?",
+      "respuesta": "Bartimeo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey de Babilonia vio una mano que escribía en la pared durante un banquete?",
+      "respuesta": "Belsasar"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hombre de Belén permitió a Rut recoger espigas en sus campos y luego se casó con ella?",
+      "respuesta": "Booz"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta fue contratado por Balac para maldecir a Israel, pero terminó bendiciéndolo?",
+      "respuesta": "Balaam"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué localidad vivían Marta, María y su hermano Lázaro?",
+      "respuesta": "Betania"
+    }
+  ],
+  "C": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué centurión de Cesarea recibió a Pedro en su casa y oyó el evangelio con sus familiares?",
+      "respuesta": "Cornelio"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué compañero de Josué defendió la conquista de Canaán y recibió Hebrón como heredad?",
+      "respuesta": "Caleb"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué sumo sacerdote interrogó a Jesús y rasgó sus vestiduras al escuchar su respuesta?",
+      "respuesta": "Caifás"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué monte desafió Elías a los profetas de Baal?",
+      "respuesta": "Carmelo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey persa autorizó el regreso de los judíos y la reconstrucción del templo de Jerusalén?",
+      "respuesta": "Ciro"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A qué ciudad dirigió Pablo dos cartas, una de las cuales trata extensamente la resurrección en su capítulo 15?",
+      "respuesta": "Corinto"
+    }
+  ],
+  "D": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué mujer fue jueza de Israel y acompañó a Barac a enfrentar al ejército de Sísara?",
+      "respuesta": "Débora"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué mujer insistió a Sansón hasta descubrir el secreto de su fuerza?",
+      "respuesta": "Dalila"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Hacia qué ciudad se dirigía Saulo cuando lo rodeó una luz del cielo?",
+      "respuesta": "Damasco"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey firmó el decreto que llevó a Daniel al foso de los leones y luego intentó librarlo?",
+      "respuesta": "Darío"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué discípula de Jope, conocida por sus buenas obras y por hacer ropa, fue resucitada por Pedro? Usa su nombre griego.",
+      "respuesta": "Dorcas"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué quinto libro del Pentateuco recoge discursos de Moisés antes de la entrada a Canaán?",
+      "respuesta": "Deuteronomio"
+    }
+  ],
+  "E": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué creyente vio los cielos abiertos y a Jesús a la diestra de Dios antes de morir apedreado?",
+      "respuesta": "Esteban"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué sacerdote y escriba enseñó la ley al pueblo después del regreso del exilio babilónico?",
+      "respuesta": "Esdras"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué joven cayó de una ventana durante un discurso de Pablo y fue devuelto con vida?",
+      "respuesta": "Eutico"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Hacia qué aldea caminaban dos discípulos cuando Jesús resucitado se acercó y habló con ellos?",
+      "respuesta": "Emaús"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué esposa de Zacarías recibió la visita de María cuando ambas estaban embarazadas?",
+      "respuesta": "Elisabet"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey de Judá oró al enfermar y recibió por medio de Isaías el anuncio de quince años más de vida?",
+      "respuesta": "Ezequías"
+    }
+  ],
+  "F": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué gobernador escuchó a Pablo hablar de justicia, dominio propio y juicio venidero, y sintió miedo?",
+      "respuesta": "Félix"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué gobernador sucedió a Félix y llevó el caso de Pablo ante el rey Agripa?",
+      "respuesta": "Festo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué carta de Pablo contiene su petición a favor de Onésimo?",
+      "respuesta": "Filemón"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué colaboradora de la iglesia de Cencrea es recomendada por Pablo al final de Romanos?",
+      "respuesta": "Febe"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué ciudad fueron encarcelados Pablo y Silas antes del terremoto que abrió las puertas de la prisión?",
+      "respuesta": "Filipos"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué discípulo explicó Isaías al funcionario etíope y lo bautizó durante el viaje?",
+      "respuesta": "Felipe"
+    }
+  ],
+  "G": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué juez pidió una señal con un vellón y después venció a Madián con trescientos hombres?",
+      "respuesta": "Gedeón"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué siervo de Eliseo recibió lepra después de pedir regalos a Naamán a escondidas?",
+      "respuesta": "Giezi"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué maestro de la ley aconsejó al concilio no combatir a los apóstoles, por si su obra provenía de Dios?",
+      "respuesta": "Gamaliel"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué ángel anunció a Zacarías el nacimiento de Juan el Bautista?",
+      "respuesta": "Gabriel"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A qué región dirigió Pablo una carta en la que menciona el fruto del Espíritu?",
+      "respuesta": "Galacia"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué huerto pidió Jesús que pasara de él la copa, sometiéndose a la voluntad del Padre?",
+      "respuesta": "Getsemaní"
+    }
+  ],
+  "H": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué ciudad era el hogar de Abram antes de que saliera hacia Canaán tras la muerte de Taré?",
+      "respuesta": "Harán"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey de Tiro proporcionó madera y trabajadores para la construcción del templo de Salomón?",
+      "respuesta": "Hiram"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta animó a los judíos a reconstruir el templo cuando ellos se ocupaban de sus propias casas?",
+      "respuesta": "Hageo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué mujer guardaba rencor a Juan el Bautista y aconsejó a su hija que pidiera su cabeza?",
+      "respuesta": "Herodías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A qué gobernante servía Cusa, el esposo de Juana, una de las mujeres que apoyaban a Jesús?",
+      "respuesta": "Herodes"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué libro del Nuevo Testamento presenta a Jesús como sumo sacerdote según el orden de Melquisedec?",
+      "respuesta": "Hebreos"
+    }
+  ],
+  "I": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de Abraham fue atado sobre el altar antes de que Dios proveyera un carnero?",
+      "respuesta": "Isaac"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta vio al Señor en un trono y recibió un carbón encendido sobre sus labios?",
+      "respuesta": "Isaías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de Abraham y Agar fue enviado al desierto junto con su madre?",
+      "respuesta": "Ismael"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué nombre recibió Jacob después de luchar durante la noche y pedir una bendición?",
+      "respuesta": "Israel"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué sustancia aromática estaba ofreciendo Zacarías en el santuario cuando se le apareció el ángel Gabriel?",
+      "respuesta": "Incienso"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué comunidad describe Pablo como el cuerpo de Cristo, formado por muchos miembros?",
+      "respuesta": "Iglesia"
+    }
+  ],
+  "J": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de Saúl hizo un pacto de amistad con David y lo protegió de su padre?",
+      "respuesta": "Jonatán"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey de Judá impulsó una reforma religiosa después de encontrarse el libro de la ley en el templo?",
+      "respuesta": "Josías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué general de David mató a Absalón a pesar de la orden del rey de tratarlo con consideración?",
+      "respuesta": "Joab"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta dictó a Baruc un rollo que el rey Joacim cortó y quemó?",
+      "respuesta": "Jeremías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué discípulo, junto con su hermano Juan, recibió de Jesús el sobrenombre de hijo del trueno?",
+      "respuesta": "Jacobo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey de Israel estableció becerros de oro en Betel y Dan después de la división del reino?",
+      "respuesta": "Jeroboam"
+    }
+  ],
+  "K": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cuál de estos hombres fue el padre del rey Saúl: Kis, Kelita o Kir?",
+      "respuesta": "Kis"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cuál de estos nombres corresponde a una hija de Job: Keren-hapuc, Kibrot-hataava o Kis?",
+      "respuesta": "Keren-hapuc"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué nombre corresponde al lugar de las tumbas de quienes codiciaron carne: Kir, Kibrot-hataava o Kelita?",
+      "respuesta": "Kibrot-hataava"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A qué lugar fueron deportados los habitantes de Damasco en 2 Reyes 16:9: Kir, Kis o Kelaía?",
+      "respuesta": "Kir"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cuál es otro nombre del levita Kelita en Esdras 10:23: Kis, Kelaía o Keren-hapuc?",
+      "respuesta": "Kelaía"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Quién ayudó a explicar la ley junto a Esdras en Nehemías 8:7: Kir, Kis o Kelita?",
+      "respuesta": "Kelita"
+    }
+  ],
+  "L": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué vendedora de púrpura de Tiatira abrió su casa a Pablo después de ser bautizada?",
+      "respuesta": "Lidia"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué suegro de Jacob lo hizo trabajar siete años y le entregó primero a Lea en lugar de Raquel?",
+      "respuesta": "Labán"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cómo se llamaba la hermana mayor de Raquel, que fue la primera esposa de Jacob?",
+      "respuesta": "Lea"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué evangelista es llamado por Pablo «el médico amado»?",
+      "respuesta": "Lucas"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué mujer es mencionada por Pablo como madre de Eunice y abuela de Timoteo?",
+      "respuesta": "Loida"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué libro del Pentateuco contiene leyes sobre sacrificios, sacerdotes y pureza ceremonial?",
+      "respuesta": "Levítico"
+    }
+  ],
+  "M": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué primo de Ester descubrió una conspiración contra el rey Asuero y después fue honrado públicamente?",
+      "respuesta": "Mardoqueo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hermana de Moisés dirigió a las mujeres con panderos después del cruce del mar Rojo? Usa el nombre de la RVR1960.",
+      "respuesta": "María"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué evangelista era primo de Bernabé y lo acompañó a Chipre después de separarse de Pablo?",
+      "respuesta": "Marcos"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué discípulo fue elegido para ocupar el lugar de Judas Iscariote entre los doce?",
+      "respuesta": "Matías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de Jonatán, lisiado de los pies, fue invitado a comer a la mesa de David?",
+      "respuesta": "Mefi-boset"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A qué siervo del sumo sacerdote le cortó Pedro la oreja durante el arresto de Jesús?",
+      "respuesta": "Malco"
+    }
+  ],
+  "N": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué general sirio fue sanado de lepra después de sumergirse siete veces en el Jordán?",
+      "respuesta": "Naamán"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta confrontó a David con la historia de un hombre rico que quitó la única corderita de un pobre?",
+      "respuesta": "Natán"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué copero del rey de Persia dirigió la reconstrucción de las murallas de Jerusalén?",
+      "respuesta": "Nehemías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué mujer pidió ser llamada Mara al regresar a Belén después de perder a su esposo y a sus hijos?",
+      "respuesta": "Noemí"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué fariseo defendió que se escuchara a Jesús antes de juzgarlo y después llevó especias para su sepultura?",
+      "respuesta": "Nicodemo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hombre fue presentado por Felipe a Jesús y recibió el elogio de ser un israelita sin engaño?",
+      "respuesta": "Natanael"
+    }
+  ],
+  "Ñ": [
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué tratamiento usó Tomás al reconocer a Jesús resucitado: «... mío, y Dios mío»?",
+      "respuesta": "Señor"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué experiencia interpretó José para el faraón al explicar las vacas gordas y las vacas flacas? Responde en singular.",
+      "respuesta": "Sueño"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué sustantivo describe el arco que Dios puso en las nubes como garantía de su pacto tras el diluvio?",
+      "respuesta": "Señal"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué planta usaron como cetro de burla al ponerla en la mano derecha de Jesús?",
+      "respuesta": "Caña"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué expresión designa la celebración del pan y la copa instituida por Jesús? Usa la forma de 1 Corintios 11:20 que contiene Ñ.",
+      "respuesta": "Cena del Señor"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿En qué elevación del terreno se sentó Jesús al comenzar el discurso de las bienaventuranzas? Usa un sinónimo de monte que contiene Ñ.",
+      "respuesta": "Montaña"
+    }
+  ],
+  "O": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué esclavo convertido al cristianismo es el motivo principal de la carta de Pablo a Filemón?",
+      "respuesta": "Onésimo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta se casó con Gomer como parte de una señal sobre la relación entre Dios e Israel?",
+      "respuesta": "Oseas"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué primer juez de Israel, sobrino de Caleb, libró al pueblo de Cusán-risataim?",
+      "respuesta": "Otoniel"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué nuera de Noemí regresó a su pueblo mientras Rut decidió quedarse con su suegra?",
+      "respuesta": "Orfa"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En casa de qué hombre permaneció el arca tres meses y su familia fue bendecida, según 2 Samuel 6?",
+      "respuesta": "Obed-edom"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hombre de gran estatura, rey de Basán, fue derrotado por los israelitas antes de entrar en Canaán?",
+      "respuesta": "Og"
+    }
+  ],
+  "P": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué esposa de Aquila colaboró con él para explicar mejor el evangelio a Apolos?",
+      "respuesta": "Priscila"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué apóstol reprendió a Simón cuando este quiso comprar el poder de impartir el Espíritu Santo?",
+      "respuesta": "Pedro"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué isla recogió Juan las visiones relatadas en Apocalipsis?",
+      "respuesta": "Patmos"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué colaborador de Pablo es llamado hermano, colaborador y compañero de milicia en Filipenses 2?",
+      "respuesta": "Epafrodito"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué funcionario egipcio compró a José y lo puso al frente de su casa?",
+      "respuesta": "Potifar"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué fiesta judía conmemora la liberación narrada en el libro de Ester?",
+      "respuesta": "Purim"
+    }
+  ],
+  "Q": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué seres celestiales fueron colocados al oriente del Edén para guardar el camino al árbol de la vida?",
+      "respuesta": "Querubines"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué esposa de Jacob murió al dar a luz a Benjamín?",
+      "respuesta": "Raquel"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué rey y sacerdote de Salem recibió diezmos de Abraham y sirve como figura del sacerdocio de Cristo?",
+      "respuesta": "Melquisedec"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué profeta vio cuatro seres vivientes y ruedas junto a ellos al comenzar su ministerio?",
+      "respuesta": "Ezequiel"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué profeta anunció que de Belén saldría quien sería Señor en Israel?",
+      "respuesta": "Miqueas"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué profeta cierra el Antiguo Testamento en el orden habitual de las Biblias protestantes?",
+      "respuesta": "Malaquías"
+    }
+  ],
+  "R": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué mujer escondió a los espías de Josué y señaló su casa con un cordón rojo?",
+      "respuesta": "Rahab"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de Salomón rechazó el consejo de los ancianos y provocó la división del reino?",
+      "respuesta": "Roboam"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué criada reconoció la voz de Pedro en la puerta, pero por la alegría olvidó abrirle?",
+      "respuesta": "Rode"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo mayor de Jacob intervino para que sus hermanos no mataran a José?",
+      "respuesta": "Rubén"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué esposa de Isaac ayudó a Jacob a recibir la bendición destinada a Esaú?",
+      "respuesta": "Rebeca"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A los creyentes de qué ciudad escribió Pablo que todos pecaron y están destituidos de la gloria de Dios?",
+      "respuesta": "Roma"
+    }
+  ],
+  "S": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué compañero de Pablo cantaba himnos con él en la cárcel de Filipos?",
+      "respuesta": "Silas"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué anciano tomó al niño Jesús en brazos y dijo que ya podía morir en paz?",
+      "respuesta": "Simeón"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué general enemigo de Israel murió cuando Jael le clavó una estaca mientras dormía?",
+      "respuesta": "Sísara"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey pidió un corazón entendido para gobernar y distinguir entre lo bueno y lo malo?",
+      "respuesta": "Salomón"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué profeta ungió a Saúl y después a David como reyes de Israel?",
+      "respuesta": "Samuel"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué ciudad se encontraba Jesús cuando conversó con la mujer samaritana junto al pozo?",
+      "respuesta": "Sicar"
+    }
+  ],
+  "T": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué joven colaborador de Pablo tenía por madre a Eunice y por abuela a Loida?",
+      "respuesta": "Timoteo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué colaborador de Pablo quedó en Creta con el encargo de establecer ancianos?",
+      "respuesta": "Tito"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué discípulo dijo a Jesús resucitado: «¡Señor mío, y Dios mío!»?",
+      "respuesta": "Tomás"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué discípula de Jope tenía un nombre arameo que significa gacela? Da el nombre arameo, equivalente a Dorcas.",
+      "respuesta": "Tabita"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿A qué creyentes dirigió Pablo la carta que contiene la instrucción de que quien no quiera trabajar tampoco coma?",
+      "respuesta": "Tesalonicenses"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿En qué ciudad de Cilicia nació Pablo, según su propia declaración en Hechos?",
+      "respuesta": "Tarso"
+    }
+  ],
+  "U": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué soldado heteo, esposo de Betsabé, fue enviado por orden de David al frente más peligroso de la batalla?",
+      "respuesta": "Urías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿De qué ciudad de los caldeos salió Abram antes de establecerse en Harán?",
+      "respuesta": "Ur"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hombre murió después de tocar el arca para sujetarla cuando los bueyes tropezaron?",
+      "respuesta": "Uza"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué rey de Judá quedó leproso después de entrar al templo a quemar incienso?",
+      "respuesta": "Uzías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué fruto llevaron los espías de Canaán en un racimo tan grande que dos hombres lo cargaron en un palo? Responde en plural.",
+      "respuesta": "Uvas"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué objeto sacerdotal se menciona junto con el Tumim y se colocaba en el pectoral del juicio?",
+      "respuesta": "Urim"
+    }
+  ],
+  "V": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Con qué planta se identifica Jesús al explicar que sus discípulos son los pámpanos?",
+      "respuesta": "Vid"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cómo se llama la promesa solemne que hizo Ana al ofrecer consagrar a su hijo a Dios?",
+      "respuesta": "Voto"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué instrumento del pastor acompaña al cayado como imagen de protección en el Salmo 23?",
+      "respuesta": "Vara"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué objeto del templo se rasgó de arriba abajo cuando murió Jesús?",
+      "respuesta": "Velo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cómo se denomina a la mujer sin esposo que dio dos pequeñas monedas y fue elogiada por Jesús?",
+      "respuesta": "Viuda"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué animales gordos y flacos aparecieron en uno de los sueños del faraón interpretados por José?",
+      "respuesta": "Vacas"
+    }
+  ],
+  "X": [
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué libro relata la institución de la Pascua y la salida de Israel de Egipto?",
+      "respuesta": "Éxodo"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Cómo se llama el destierro a Babilonia durante el cual vivieron Daniel y sus compañeros?",
+      "respuesta": "Exilio"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Cómo se llama la forma de ejecución que padeció Jesús bajo el gobierno de Poncio Pilato?",
+      "respuesta": "Crucifixión"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿En qué día debían recoger los israelitas una doble porción de maná? Responde con el ordinal.",
+      "respuesta": "Sexto"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué mandato de 1 Tesalonicenses 5:21 precede a «retened lo bueno»? Completa «... todo» con el verbo de la RVR1960.",
+      "respuesta": "Examinad"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué verbo usa Hebreos 10:25 al pedir que nos animemos mutuamente antes de decir «tanto más, cuanto veis que aquel día se acerca»? Usa la forma terminada en «nos» de la RVR1960.",
+      "respuesta": "Exhortándonos"
+    }
+  ],
+  "Y": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué instrumento de trabajo agrícola usa Jesús como imagen de la carga que invita a tomar, diciendo que la suya es fácil?",
+      "respuesta": "Yugo"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué nombre general recibe el conjunto de mandamientos que Esdras leyó públicamente al pueblo?",
+      "respuesta": "Ley"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué título recibió el niño Jesús de labios de los magos al preguntar por el que había nacido? Da solo el título.",
+      "respuesta": "Rey"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué práctica acompañó la oración de la iglesia de Antioquía antes de enviar a Bernabé y Saulo?",
+      "respuesta": "Ayuno"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Qué instrumento del pastor aparece junto a la vara en el Salmo 23?",
+      "respuesta": "Cayado"
+    },
+    {
+      "tipo": "contiene",
+      "pregunta": "¿Con qué fenómeno luminoso compara Jesús la caída de Satanás del cielo en Lucas 10:18?",
+      "respuesta": "Rayo"
+    }
+  ],
+  "Z": [
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué sacerdote, esposo de Elisabet, quedó mudo hasta el nacimiento de su hijo Juan?",
+      "respuesta": "Zacarías"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué publicano de Jericó prometió devolver cuatro veces lo que hubiera defraudado?",
+      "respuesta": "Zaqueo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Cómo se llamaba el padre de los apóstoles Jacobo y Juan, que trabajaba con ellos en una barca?",
+      "respuesta": "Zebedeo"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué gobernador descendiente de David dirigió la reconstrucción del templo después del exilio?",
+      "respuesta": "Zorobabel"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué ciudad recibió Lot permiso de alcanzar antes de la destrucción de Sodoma?",
+      "respuesta": "Zoar"
+    },
+    {
+      "tipo": "empieza",
+      "pregunta": "¿Qué hijo de Jacob y Lea dio nombre a una tribu cuyo territorio se relaciona con Galilea en Mateo 4?",
+      "respuesta": "Zabulón"
+    }
+  ]
 };
-// Sustituir ejemplos no conformes por preguntas que comiencen con la letra correspondiente.
-Object.assign(seed,{
-C:[['¿Qué objeto se utiliza para beber agua?','Copa'],['¿Qué animal marino tiene pinzas y caparazón?','Cangrejo'],['¿Qué vehículo de cuatro ruedas suele transportar pasajeros?','Coche']],
-E:[['¿Qué cuerpo celeste brilla con luz propia?','Estrella'],['¿Qué animal tiene una trompa larga?','Elefante'],['¿Qué edificio alberga clases y alumnos?','Escuela']],
-G:[['¿Qué animal doméstico maúlla?','Gato'],['¿Qué instrumento tiene habitualmente seis cuerdas?','Guitarra'],['¿Qué prenda protege las manos del frío?','Guante']],
-H:[['¿Qué gas es el elemento más ligero?','Hidrógeno'],['¿Qué bloque de agua congelada es sólido?','Hielo'],['¿Qué vegetal aromático se usa para preparar infusiones?','Hierbabuena']],
-I:[['¿Qué país tiene por capital Roma?','Italia'],['¿Qué construcción de nieve sirve como refugio?','Iglú'],['¿Qué porción de tierra está rodeada de agua?','Isla']],
-M:[['¿Qué planeta es conocido como el planeta rojo?','Marte'],['¿Qué animal volador es un mamífero?','Murciélago'],['¿Qué fruta tropical tiene una semilla grande y plana?','Mango']],
-P:[['¿Qué ave suele asociarse con la paz?','Paloma'],['¿Qué objeto se usa para escribir con tinta?','Pluma'],['¿Qué alimento se elabora con harina, agua y levadura?','Pan']],
-R:[['¿Qué animal pequeño tiene larga cola y es un roedor?','Ratón'],['¿Qué aparato recibe señales de emisoras de audio?','Radio'],['¿Qué flor es famosa por sus espinas?','Rosa']],
-S:[['¿Qué estrella ilumina la Tierra?','Sol'],['¿Qué animal es un reptil sin patas?','Serpiente'],['¿Qué mueble se usa para sentarse y tiene respaldo?','Silla']],
-V:[['¿Qué estación del año sigue a la primavera?','Verano'],['¿Qué recipiente se usa para beber líquidos?','Vaso'],['¿Qué animal bovino adulto produce leche?','Vaca']],
-X:[['¿Qué instrumento musical tiene láminas que se golpean con baquetas?','Xilófono'],['¿Qué palabra significa prueba escolar?','Examen','contiene'],['¿Qué palabra significa salida masiva de personas de un lugar?','Éxodo','contiene']],
-Z:[['¿Qué animal de pelaje blanco y negro es parecido a un caballo?','Zebra'],['¿Qué hortaliza naranja suele usarse en ensaladas?','Zanahoria'],['¿Qué prenda se usa en los pies al caminar?','Zapato']]
-});
-seed['Ñ']=[['¿Qué ave corredora sudamericana es parecida al avestruz?','Ñandú'],['¿Qué adjetivo coloquial describe a alguien excesivamente aplicado o tímido?','Ñoño'],['¿Qué pasta italiana suele prepararse con papa?','Ñoquis']];
 const $=id=>document.getElementById(id), clone=x=>JSON.parse(JSON.stringify(x));
+// Actualización del banco oficial: sustituye una sola vez los ejemplos anteriores.
+// Las ediciones posteriores del usuario se conservan en este navegador.
+const BANK_VERSION='biblia_156_v1';
+try {
+  if (localStorage.getItem('pasapalabra_bank_version') !== BANK_VERSION) {
+    localStorage.setItem('pasapalabra_bank', JSON.stringify(seed));
+    localStorage.removeItem('pasapalabra_history_v3');
+    localStorage.setItem('pasapalabra_bank_version', BANK_VERSION);
+  }
+} catch (err) { console.warn('No se pudo actualizar el almacenamiento:', err); }
 let bank;try{bank=JSON.parse(localStorage.getItem('pasapalabra_bank'))||clone(seed)}catch{bank=clone(seed)}
 let teams=[],turn=0,active=false,lastTick=0,tickHandle=null,gameOver=false;
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
